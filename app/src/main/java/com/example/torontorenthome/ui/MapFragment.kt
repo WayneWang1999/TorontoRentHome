@@ -1,6 +1,5 @@
 package com.example.torontorenthome.ui
 
-
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -8,12 +7,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.FragmentMapBinding
-import com.example.torontorenthome.models.HouseInfo
+import com.example.torontorenthome.models.House
 import com.example.torontorenthome.util.HouseOperations
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,39 +23,44 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
+        private const val COLLECTION_HOUSES = "houses"
     }
 
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
+
     private lateinit var mapView: com.google.android.gms.maps.MapView
     private lateinit var googleMap: GoogleMap
-    private val houseOperations = HouseOperations()  // Create
 
-    val db = FirebaseFirestore.getInstance()
+    private val houseOperations = HouseOperations()  // House operations to generate/upload houses
+
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?
+    ) {
         super.onViewCreated(view, savedInstanceState)
-
-
-      //  binding.svSearch.setBackgroundColor(Color.WHITE) // Set the input area background to white
 
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
         binding.tvAppName.setOnClickListener {
-            houseOperations.generateRandomHousesAndUpload()
+            houseOperations.generateRandomHousesAndUpload() // Generate and upload houses
         }
-        binding.imageFilter.setOnClickListener{
-            houseOperations.deleteAllHouses()
+
+        binding.imageFilter.setOnClickListener {
+            houseOperations.deleteAllHouses() // Delete all houses
         }
     }
 
@@ -66,15 +68,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap = map
 
         // Request location permissions
-        if (checkLocationPermission()) {
+        if (areLocationPermissionsGranted()) {
             enableUserLocation()
         } else {
-            requestLocationPermission()
+            requestLocationPermissions()
         }
 
         // Set default map position
-        val defaultLocation1 = LatLng(43.677308, -79.406927) // GBCollege
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation1, 12f))
+        val defaultLocation = LatLng(43.677308, -79.406927) // Default location (GeorgeBrown)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f))
 
         // Enable zoom controls
         googleMap.uiSettings.isZoomControlsEnabled = true
@@ -82,29 +84,37 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         // Add a default marker
         googleMap.addMarker(
             MarkerOptions()
-                .position(defaultLocation1)
+                .position(defaultLocation)
                 .title("GeorgeBrown")
         )
 
+        // Add house markers to the map
         addMarkersToMap()
-
-
     }
 
-    private fun checkLocationPermission(): Boolean {
-        val fineLocation = ContextCompat.checkSelfPermission(
+    // Check if fine location permission is granted
+    private fun isFineLocationPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
             requireContext(),
             Manifest.permission.ACCESS_FINE_LOCATION
-        )
-        val coarseLocation = ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        return fineLocation == PackageManager.PERMISSION_GRANTED &&
-                coarseLocation == PackageManager.PERMISSION_GRANTED
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestLocationPermission() {
+    // Check if coarse location permission is granted
+    private fun isCoarseLocationPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // Check if both location permissions are granted
+    private fun areLocationPermissionsGranted(): Boolean {
+        return isFineLocationPermissionGranted() && isCoarseLocationPermissionGranted()
+    }
+
+    // Request location permissions
+    private fun requestLocationPermissions() {
         requestPermissions(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -114,32 +124,46 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
+    // Enable the user's location on the map
     private fun enableUserLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (isFineLocationPermissionGranted()) {
             googleMap.isMyLocationEnabled = true
         }
     }
 
+    // Handle the results of permission requests
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableUserLocation()
-            } else {
-                // Permission denied: Show a message to the user
-                Toast.makeText(requireContext(), "Location permission denied", Toast.LENGTH_SHORT).show()
+        when (requestCode) {
+            LOCATION_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty()) {
+                    val fineLocationGranted = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    val coarseLocationGranted = grantResults[1] == PackageManager.PERMISSION_GRANTED
+
+                    if (fineLocationGranted && coarseLocationGranted) {
+                        enableUserLocation() // Permissions granted
+                    } else {
+                        // Show a message if any permission was denied
+                        val deniedPermissions = mutableListOf<String>()
+                        if (!fineLocationGranted) deniedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                        if (!coarseLocationGranted) deniedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+
+                        Toast.makeText(
+                            requireContext(),
+                            "Permission(s) denied: ${deniedPermissions.joinToString()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         }
     }
 
+    // Lifecycle methods for MapView
     override fun onResume() {
         super.onResume()
         mapView.onResume()
@@ -161,53 +185,43 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.onLowMemory()
     }
 
-    fun addMarkersToMap() {
-        val housesCollection = db.collection("houses")
-
-        housesCollection.get()
+    // Add house markers to the map
+    private fun addMarkersToMap() {
+        db.collection(COLLECTION_HOUSES).get()
             .addOnSuccessListener { querySnapshot ->
-                for (document in querySnapshot.documents) {
-
-                    val latitude = document.getDouble("latitude")
-                    val longitude = document.getDouble("longitude")
-                    val description = document.getString("description") ?: "Unknown"
-                    val type = document.getString("type") ?: "Unknown"
-                    val createTime = document.getString("createTime") ?: "Unknown"
-                    val bedrooms = (document.getLong("bedrooms") ?: 0).toInt()
-                    val bathrooms = (document.getLong("bathrooms") ?: 0).toInt()
-                    val area = (document.getLong("area") ?: 0).toInt()
-                    val price = document.getDouble("price") ?: 0.0
-
-                    val houseImage = R.drawable.house01 // Replace with your logic
-
-                    if (latitude != null && longitude != null) {
-                        // Create LatLng object
-                        val location = LatLng(latitude, longitude)
-
-                        // Add marker to the map
-                        val marker=googleMap.addMarker(
-                            MarkerOptions()
-                                .position(location)
-                                .title(description)
-                        )
-                        // Attach data to the marker
-                        marker?.tag = HouseInfo(houseImage, description,type,createTime, bedrooms, price, bathrooms,area,)
-                    }
+                val houses = querySnapshot.documents.mapNotNull { it.toObject(House::class.java) }
+                houses.forEach { house ->
+                    val location = LatLng(house.latitude, house.longitude)
+                    googleMap.addMarker(
+                        MarkerOptions()
+                            .position(location)
+                            .title(house.description)
+                    )?.tag = house
                 }
-                // Set a marker click listener
-                googleMap.setOnMarkerClickListener { marker ->
-                    val houseInfo = marker.tag as? HouseInfo
-                    houseInfo?.let {
-                        val bottomSheet = HouseInfoBottomSheet.newInstance(
-                            it.image, it.description,it.type,it.createTime, it.bedrooms, it.price,it.bathrooms,it.area
-                        )
-                        bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
-                    }
-                    true
-                }
+                setupMarkerClickListener()
             }
             .addOnFailureListener { e ->
-                println("Error fetching houses: ${e.message}")
+                Toast.makeText(requireContext(), "Error fetching houses: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    // Setup marker click listener to show house details
+    private fun setupMarkerClickListener() {
+        googleMap.setOnMarkerClickListener { marker ->
+            (marker.tag as? House)?.let { house ->
+                val bottomSheet = HouseInfoBottomSheet.newInstance(
+                    house.image,
+                    house.description,
+                    house.type,
+                    house.createTime,
+                    house.bedrooms,
+                    house.price,
+                    house.bathrooms,
+                    house.area
+                )
+                bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
+            }
+            true
+        }
     }
 }

@@ -13,7 +13,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetHouseInfoBinding? = null
     private val binding get() = _binding!!
 
-    private var houseImage: Int = R.drawable.ic_launcher_background
+    private var houseImage: Int = R.drawable.house01
     private var description: String = ""
     private var type: String = ""
     private var createTime: String = ""
@@ -52,7 +52,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            houseImage = it.getInt("houseImage", R.drawable.ic_launcher_background)
+            houseImage = it.getInt("houseImage", 0)
             description = it.getString("description", "")
             type = it.getString("type", "")
             createTime = it.getString("createTime", "")
