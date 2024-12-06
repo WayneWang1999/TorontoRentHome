@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.MapFragment">
+
+    <!-- A LinearLayout inside the FrameLayout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F5F5F5"
+        android:orientation="vertical">  <!-- Light Gray Background -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="#FFFFFF"
+            android:orientation="horizontal"
+            android:weightSum="10"> <!-- White Background for the Top Bar -->
+
+            <TextView
+                android:id="@+id/tvAppName"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:paddingStart="16dp"
+                android:paddingTop="4dp"
+                android:background="#718BD0"
+                android:clickable="true"
+                android:text="TORH.ca"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
+            <SearchView
+                android:id="@+id/svSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="6"
+
+                android:background="#718BD0"
+                />
+
+            <ImageView
+                android:id="@+id/imageFilter"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#718BD0"
+                android:clickable="true"
+                android:contentDescription="FilterImage"
+                android:src="@drawable/ic_action_filter" />
+        </LinearLayout>
+
+        <!-- MapView Below the Top Bar -->
+        <com.google.android.gms.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+</FrameLayout>
