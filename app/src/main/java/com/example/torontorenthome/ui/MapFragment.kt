@@ -9,88 +9,135 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
 import com.example.torontorenthome.util.HouseOperations
+import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.firebase.firestore.FirebaseFirestore
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
-        private const val COLLECTION_HOUSES = "houses"
     }
 
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var mapView: com.google.android.gms.maps.MapView
+    private lateinit var mapView: MapView
     private lateinit var googleMap: GoogleMap
 
-    private val houseOperations = HouseOperations()  // House operations to generate/upload houses
+    private lateinit var mapViewModel: MapViewModel
 
-    private val db = FirebaseFirestore.getInstance()
+    private val houseOperations = HouseOperations()  // House operations to generate/upload houses data
+
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?
-    ) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
+        // Initialize ViewModel
+        mapViewModel = ViewModelProvider(this).get(MapViewModel::class.java)
+
+        // Observe the houses LiveData
+        mapViewModel.houses.observe(viewLifecycleOwner, Observer { houses ->
+            houses?.let {
+                addMarkersToMap(it)
+            }
+        })
+       // Observe the house details LiveData
+        mapViewModel.houseDetails.observe(viewLifecycleOwner, Observer { house ->
+            house?.let {
+                showHouseInfoBottomSheet(it)
+            }
+        })
+
+
+        // Fetch houses when the fragment is ready
+        mapViewModel.fetchHouses()
+
         binding.tvAppName.setOnClickListener {
-            houseOperations.generateRandomHousesAndUpload() // Generate and upload houses
+            // Trigger house generation if needed
+            houseOperations.generateRandomHousesAndUpload()
         }
 
         binding.imageFilter.setOnClickListener {
-            houseOperations.deleteAllHouses() // Delete all houses
+            houseOperations.deleteAllHouses()
         }
     }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
 
-        // Request location permissions
         if (areLocationPermissionsGranted()) {
             enableUserLocation()
         } else {
             requestLocationPermissions()
         }
 
-        // Set default map position
-        val defaultLocation = LatLng(43.677308, -79.406927) // Default location (GeorgeBrown)
+        val defaultLocation = LatLng(43.677308, -79.406927)
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f))
-
-        // Enable zoom controls
         googleMap.uiSettings.isZoomControlsEnabled = true
-
-        // Add a default marker
-        googleMap.addMarker(
-            MarkerOptions()
-                .position(defaultLocation)
-                .title("GeorgeBrown")
-        )
-
-        // Add house markers to the map
-        addMarkersToMap()
+        googleMap.addMarker(MarkerOptions().position(defaultLocation).title("GeorgeBrown"))
     }
+
+    private fun addMarkersToMap(houses: List<House>) {
+        houses.forEach { house ->
+            val location = LatLng(house.latitude, house.longitude)
+            googleMap.addMarker(
+                MarkerOptions()
+                    .position(location)
+                    .title(house.description)
+            )?.tag = house.houseId
+        }
+        setupMarkerClickListener()
+    }
+
+    private fun setupMarkerClickListener() {
+        googleMap.setOnMarkerClickListener { marker ->
+            val houseId = marker.tag as? String
+            if (houseId != null) {
+                // Request house details from ViewModel
+                mapViewModel.fetchHouseDetails(houseId)
+            }
+            true
+        }
+    }
+
+    private fun showHouseInfoBottomSheet(house: House) {
+        // Show house details in BottomSheet
+        val bottomSheet = HouseInfoBottomSheet.newInstance(
+            house.image,
+            house.description,
+            house.type,
+            house.createTime,
+            house.bedrooms,
+            house.price,
+            house.bathrooms,
+            house.area
+        )
+        bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
+    }
+
+
 
     // Check if fine location permission is granted
     private fun isFineLocationPermissionGranted(): Boolean {
@@ -124,12 +171,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-    // Enable the user's location on the map
     private fun enableUserLocation() {
+        // Explicitly check if permissions are granted
         if (isFineLocationPermissionGranted()) {
-            googleMap.isMyLocationEnabled = true
+            try {
+                googleMap.isMyLocationEnabled = true // Enable user location on the map
+            } catch (e: SecurityException) {
+                // Handle the case where permission might be denied or missing
+                Toast.makeText(requireContext(), "Error enabling location: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            // If permission is not granted, request it
+            requestLocationPermissions()
         }
     }
+
 
     // Handle the results of permission requests
     override fun onRequestPermissionsResult(
@@ -185,43 +241,5 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.onLowMemory()
     }
 
-    // Add house markers to the map
-    private fun addMarkersToMap() {
-        db.collection(COLLECTION_HOUSES).get()
-            .addOnSuccessListener { querySnapshot ->
-                val houses = querySnapshot.documents.mapNotNull { it.toObject(House::class.java) }
-                houses.forEach { house ->
-                    val location = LatLng(house.latitude, house.longitude)
-                    googleMap.addMarker(
-                        MarkerOptions()
-                            .position(location)
-                            .title(house.description)
-                    )?.tag = house
-                }
-                setupMarkerClickListener()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error fetching houses: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
 
-    // Setup marker click listener to show house details
-    private fun setupMarkerClickListener() {
-        googleMap.setOnMarkerClickListener { marker ->
-            (marker.tag as? House)?.let { house ->
-                val bottomSheet = HouseInfoBottomSheet.newInstance(
-                    house.image,
-                    house.description,
-                    house.type,
-                    house.createTime,
-                    house.bedrooms,
-                    house.price,
-                    house.bathrooms,
-                    house.area
-                )
-                bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
-            }
-            true
-        }
-    }
 }

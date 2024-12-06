@@ -1,8 +1,11 @@
 package com.example.torontorenthome.models
 
 import com.example.torontorenthome.R
+import com.google.firebase.firestore.DocumentId
 
 data class House @JvmOverloads constructor(
+    @DocumentId
+    var houseId:String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val address: String = "",
