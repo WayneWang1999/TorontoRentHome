@@ -9,11 +9,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.example.torontorenthome.data.HouseRepository
+import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
-import com.example.torontorenthome.util.HouseOperations
 import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -33,11 +33,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mapView: MapView
     private lateinit var googleMap: GoogleMap
-
     private lateinit var mapViewModel: MapViewModel
-
-    private val houseOperations = HouseOperations()  // House operations to generate/upload houses data
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,37 +46,31 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize MapView
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
 
-        // Initialize ViewModel
-        mapViewModel = ViewModelProvider(this).get(MapViewModel::class.java)
+        // Initialize Repository and ViewModel
+        val repository = HouseRepository()
+        val factory = MapViewModelFactory(repository)
+        mapViewModel = ViewModelProvider(this, factory).get(MapViewModel::class.java)
 
-        // Observe the houses LiveData
-        mapViewModel.houses.observe(viewLifecycleOwner, Observer { houses ->
-            houses?.let {
-                addMarkersToMap(it)
-            }
-        })
-       // Observe the house details LiveData
-        mapViewModel.houseDetails.observe(viewLifecycleOwner, Observer { house ->
-            house?.let {
-                showHouseInfoBottomSheet(it)
-            }
-        })
+        // Observe houses LiveData
+        mapViewModel.houses.observe(viewLifecycleOwner) { houses ->
+            houses?.let { addMarkersToMap(it) }
+        }
 
-
-        // Fetch houses when the fragment is ready
+        // Fetch houses from ViewModel
         mapViewModel.fetchHouses()
 
+        // Setup interactions
         binding.tvAppName.setOnClickListener {
-            // Trigger house generation if needed
-            houseOperations.generateRandomHousesAndUpload()
+            Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
         }
 
         binding.imageFilter.setOnClickListener {
-            houseOperations.deleteAllHouses()
+            Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -93,10 +83,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             requestLocationPermissions()
         }
 
-        val defaultLocation = LatLng(43.677308, -79.406927)
+        val defaultLocation = LatLng(43.677308, -79.406927) // Default location (e.g., GeorgeBrown)
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f))
         googleMap.uiSettings.isZoomControlsEnabled = true
-        googleMap.addMarker(MarkerOptions().position(defaultLocation).title("GeorgeBrown"))
     }
 
     private fun addMarkersToMap(houses: List<House>) {
@@ -108,20 +97,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     .title(house.description)
             )?.tag = house.houseId
         }
+
         setupMarkerClickListener()
     }
 
     private fun setupMarkerClickListener() {
         googleMap.setOnMarkerClickListener { marker ->
             val houseId = marker.tag as? String
-            if (houseId != null) {
-                // Request house details from ViewModel
-                mapViewModel.fetchHouseDetails(houseId)
-            }
+            houseId?.let { mapViewModel.fetchHouseDetails(it) }
             true
         }
-    }
 
+        mapViewModel.houseDetails.observe(viewLifecycleOwner) { house ->
+            house?.let {
+                showHouseInfoBottomSheet(house)
+                // Show house details (e.g., BottomSheet or dialog)
+            }
+        }
+    }
     private fun showHouseInfoBottomSheet(house: House) {
         // Show house details in BottomSheet
         val bottomSheet = HouseInfoBottomSheet.newInstance(
@@ -138,8 +131,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
 
-
-    // Check if fine location permission is granted
+    // Permission helpers
     private fun isFineLocationPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(
             requireContext(),
@@ -147,7 +139,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    // Check if coarse location permission is granted
     private fun isCoarseLocationPermissionGranted(): Boolean {
         return ContextCompat.checkSelfPermission(
             requireContext(),
@@ -155,12 +146,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    // Check if both location permissions are granted
     private fun areLocationPermissionsGranted(): Boolean {
         return isFineLocationPermissionGranted() && isCoarseLocationPermissionGranted()
     }
 
-    // Request location permissions
     private fun requestLocationPermissions() {
         requestPermissions(
             arrayOf(
@@ -172,49 +161,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun enableUserLocation() {
-        // Explicitly check if permissions are granted
         if (isFineLocationPermissionGranted()) {
             try {
-                googleMap.isMyLocationEnabled = true // Enable user location on the map
+                googleMap.isMyLocationEnabled = true
             } catch (e: SecurityException) {
-                // Handle the case where permission might be denied or missing
                 Toast.makeText(requireContext(), "Error enabling location: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         } else {
-            // If permission is not granted, request it
             requestLocationPermissions()
         }
     }
 
-
-    // Handle the results of permission requests
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty()) {
-                    val fineLocationGranted = grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    val coarseLocationGranted = grantResults[1] == PackageManager.PERMISSION_GRANTED
-
-                    if (fineLocationGranted && coarseLocationGranted) {
-                        enableUserLocation() // Permissions granted
-                    } else {
-                        // Show a message if any permission was denied
-                        val deniedPermissions = mutableListOf<String>()
-                        if (!fineLocationGranted) deniedPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
-                        if (!coarseLocationGranted) deniedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-
-                        Toast.makeText(
-                            requireContext(),
-                            "Permission(s) denied: ${deniedPermissions.joinToString()}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                enableUserLocation()
+            } else {
+                Toast.makeText(requireContext(), "Location permission denied.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -240,6 +208,4 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onLowMemory()
         mapView.onLowMemory()
     }
-
-
 }
