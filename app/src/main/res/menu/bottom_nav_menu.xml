@@ -9,6 +9,10 @@
         android:title="List"
         android:icon="@drawable/ic_action_list"/>
     <item
+        android:id="@+id/miFavorite"
+        android:title="Favorite"
+        android:icon="@drawable/ic_action_favorite"/>
+    <item
         android:id="@+id/miAccount"
         android:title="Account"
         android:icon="@drawable/ic_action_account"/>

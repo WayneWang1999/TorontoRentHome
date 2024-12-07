@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
 }
 
 android {
@@ -61,4 +62,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.1.0") // Added dependency
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
+    // Room runtime
+    implementation("androidx.room:room-runtime:2.5.2")
+    // Room Kotlin extensions and Coroutines support
+    implementation("androidx.room:room-ktx:2.5.2")
+    // Annotation Processor (KAPT) or Kotlin Symbol Processing (KSP)
+    ksp("androidx.room:room-compiler:2.5.2")
 }

@@ -10,10 +10,13 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.torontorenthome.MyApp
 import com.example.torontorenthome.data.HouseRepository
 import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
+import com.example.torontorenthome.util.HouseOperations
+import com.example.torontorenthome.util.UserOperations
 import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -34,6 +37,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var googleMap: GoogleMap
     private lateinit var mapViewModel: MapViewModel
+   // data simulate class
+    private val houseOperations=HouseOperations()
+    private val userOperations=UserOperations()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,7 +58,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         // Initialize Repository and ViewModel
-        val repository = HouseRepository()
+        val database = (requireContext().applicationContext as MyApp).database
+        val houseDao = database.houseDao()
+        val repository = HouseRepository(houseDao)
         val factory = MapViewModelFactory(repository)
         mapViewModel = ViewModelProvider(this, factory).get(MapViewModel::class.java)
 
@@ -66,11 +74,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         // Setup interactions
         binding.tvAppName.setOnClickListener {
-            Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
+            houseOperations.generateRandomHousesAndUpload()
+            userOperations.generateAllUsersAndUpload()
         }
 
         binding.imageFilter.setOnClickListener {
-            Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
+            houseOperations.deleteAllHouses()
+            userOperations.deleteAllUsers()
         }
     }
 

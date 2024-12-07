@@ -1,10 +1,13 @@
 package com.example.torontorenthome.models
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.example.torontorenthome.R
 import com.google.firebase.firestore.DocumentId
-
+@Entity(tableName = "houses")
 data class House @JvmOverloads constructor(
     @DocumentId
+    @PrimaryKey
     var houseId:String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
