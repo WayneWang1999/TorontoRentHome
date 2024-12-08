@@ -4,5 +4,5 @@ data class Owner(
     val name:String,
     val email:String,
     val password:String,
-    val ownerHouseId:String,
+    val ownerHouseIds:List<String>,
 )

@@ -15,6 +15,7 @@ import com.example.torontorenthome.data.HouseRepository
 import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
+import com.example.torontorenthome.util.HouseOperations
 import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -68,11 +69,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapViewModel.fetchHouses()
 
         // Setup interactions
+        val houseOperations=HouseOperations()
         binding.tvAppName.setOnClickListener {
+            houseOperations.generateRandomHousesAndUpload()
             Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
         }
 
         binding.imageFilter.setOnClickListener {
+            houseOperations.deleteAllHouses()
             Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
         }
     }

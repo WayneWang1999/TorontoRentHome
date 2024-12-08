@@ -3,6 +3,9 @@ package com.example.torontorenthome.util
 import com.example.torontorenthome.R
 import com.example.torontorenthome.models.House
 import com.google.firebase.firestore.FirebaseFirestore
+
+
+
 import kotlin.random.Random
 
 class HouseOperations {
@@ -12,9 +15,10 @@ class HouseOperations {
         val batch = db.batch() // Use batch writes for efficiency
         val housesCollection = db.collection("houses")
 
-        for (i in 1..50) {
+        for (i in 1..100) {
             val latitude = Random.nextDouble(43.65, 43.78)
             val longitude = Random.nextDouble(-79.53, -79.33)
+
             // Generate random data
             val house = House(
                 latitude = latitude,
