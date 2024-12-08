@@ -5,23 +5,44 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
 
-class HouseRepository {
+class HouseRepository (private val houseDao: HouseDao){
 
     private val db = FirebaseFirestore.getInstance()
 
     suspend fun fetchHouses(): List<House> {
         return try {
-            db.collection("houses").get().await().documents.mapNotNull { it.toObject(House::class.java) }
-        } catch (e: FirebaseFirestoreException) {
-            throw e
+            // Fetch from Firestore
+            val houses = db.collection("houses")
+                .get()
+                .await()
+                .documents
+                .mapNotNull { it.toObject(House::class.java) }
+
+            // Save to local database
+            houseDao.insertHouses(houses)
+
+            // Return fetched data
+            houses
+        } catch (e: Exception) {
+            // Fetch from Room database on failure
+            e.printStackTrace() // Log the error for debugging
+            houseDao.getAllHouses()
         }
     }
 
+
+    // Fetch house details by ID
     suspend fun fetchHouseDetails(houseId: String): House? {
         return try {
-            db.collection("houses").document(houseId).get().await().toObject(House::class.java)
+            val house = db.collection("houses").document(houseId).get().await()
+                .toObject(House::class.java)
+            house?.let {
+                houseDao.insertHouse(it) // Save to local database
+            }
+            house
         } catch (e: FirebaseFirestoreException) {
-            throw e
+            // Fetch from Room database on failure
+            houseDao.getHouseById(houseId)
         }
     }
 }

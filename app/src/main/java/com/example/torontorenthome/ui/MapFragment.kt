@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.torontorenthome.MyApp
 import com.example.torontorenthome.data.HouseRepository
 import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
@@ -52,7 +53,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
 
         // Initialize Repository and ViewModel
-        val repository = HouseRepository()
+        val database = (requireContext().applicationContext as MyApp).database
+        val houseDao = database.houseDao()
+        val repository = HouseRepository(houseDao)
         val factory = MapViewModelFactory(repository)
         mapViewModel = ViewModelProvider(this, factory).get(MapViewModel::class.java)
 

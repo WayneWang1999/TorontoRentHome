@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "687265216563",
-    "project_id": "torontorenthome",
-    "storage_bucket": "torontorenthome.firebasestorage.app"
+    "project_number": "457459287285",
+    "project_id": "my-firebase-example01",
+    "storage_bucket": "my-firebase-example01.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:687265216563:android:ce4a561aea5b24b040cb46",
+        "mobilesdk_app_id": "1:457459287285:android:67b0d09e8ff85be685f1bc",
         "android_client_info": {
           "package_name": "com.example.torontorenthome"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCLYf_py3Cd_yooE3LRFhHroQgcKu_AefA"
+          "current_key": "AIzaSyD-56kgRgD0qA8XZkri4MzGkPN1ncj6Za0"
         }
       ],
       "services": {
