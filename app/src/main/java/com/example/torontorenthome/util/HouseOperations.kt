@@ -24,9 +24,12 @@ class HouseOperations {
                 latitude = latitude,
                 longitude = longitude,
                 address = "House $i, Street ${Random.nextInt(1, 100)}, City",
+                createTime = "${Random.nextInt(1, 100)} days",
                 description = "A beautiful house with modern amenities.",
-                bedrooms = Random.nextInt(1, 6), // Random number of bedrooms (1 to 5)
-                price = Random.nextDouble(100000.0, 1000000.0), // Random price between 100k and 1M
+                bedrooms = Random.nextInt(1, 6),
+                bathrooms = Random.nextInt(1,6),
+                area = Random.nextInt(500,10000),
+                price = Random.nextDouble(1000.0, 100000.0),
                 image = R.drawable.house01
 
             )

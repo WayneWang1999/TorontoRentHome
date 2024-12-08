@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scaleType="centerCrop"
+        android:contentDescription="house"
         android:src="@drawable/ic_launcher_foreground" />
 
     <LinearLayout
@@ -27,6 +28,7 @@
 
         <ImageView
             android:id="@+id/imageFavorite"
+            android:contentDescription="favorite"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
