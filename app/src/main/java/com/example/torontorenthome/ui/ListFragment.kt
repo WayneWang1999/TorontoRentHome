@@ -29,6 +29,7 @@ class ListFragment : Fragment() {
     private lateinit var houseAdapter: HouseAdapter
     private lateinit var listViewModel: ListViewModel
     private lateinit var firebaseAuth: FirebaseAuth
+    private val favoriteIds = mutableSetOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,38 +47,51 @@ class ListFragment : Fragment() {
         val factory = ListViewModelFactory(repository)
         listViewModel = ViewModelProvider(this, factory).get(ListViewModel::class.java)
 
-        // -------- setup the auth variable
+        // Initialize Firebase Auth
         firebaseAuth = Firebase.auth
+
+        // Fetch and observe favorite IDs for the logged-in user
+        fetchFavoriteIds()
+
+        // Handle logout events
+        firebaseAuth.addAuthStateListener { auth ->
+            val user = auth.currentUser
+            if (user == null) {
+                onLogout()
+            }
+        }
+
         // Define the onFavoriteClick callback
         val onFavoriteClick: (House) -> Unit = { house ->
             val currentUser = firebaseAuth.currentUser
-            if (currentUser !=null) {
-                // User is logged in, update the favorite list
+            if (currentUser != null) {
                 val favoriteHouseId = house.houseId
-
-                // Add house ID to the current user's favorite list (this could be a list of house IDs)
-                // Assuming you have a Firebase FireStore collection for users, where the user data is stored
                 val userRef = FirebaseFirestore.getInstance().collection("tenants").document(currentUser.uid)
-                userRef.update("favoriteHouseIds", FieldValue.arrayUnion(favoriteHouseId))
-                // Show a success message
-                Toast.makeText(context, "House added to favorites!", Toast.LENGTH_SHORT).show()
-                // Update the view (in this case, you could refresh the adapter)
-                houseAdapter.notifyDataSetChanged()
+
+                if (favoriteIds.contains(favoriteHouseId)) {
+                    // Remove from favorites
+                    userRef.update("favoriteHouseIds", FieldValue.arrayRemove(favoriteHouseId))
+                    favoriteIds.remove(favoriteHouseId)
+                    Toast.makeText(context, "House removed from favorites!", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Add to favorites
+                    userRef.update("favoriteHouseIds", FieldValue.arrayUnion(favoriteHouseId))
+                    favoriteIds.add(favoriteHouseId)
+                    Toast.makeText(context, "House added to favorites!", Toast.LENGTH_SHORT).show()
+                }
+
+                // Update the adapter with new favorite IDs
+                houseAdapter.updateFavoriteIds(favoriteIds)
             } else {
-                // If the user is not logged in, navigate to the AccountFragment
+                // Navigate to AccountFragment if not logged in
                 Toast.makeText(context, "You need to log in to add favorites", Toast.LENGTH_SHORT).show()
                 val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
                 bottomNavigationView.selectedItemId = R.id.miAccount
             }
-
-            // Refresh the list to reflect the change
-            houseAdapter.notifyDataSetChanged()
         }
+
         // Set up RecyclerView with an empty adapter initially
-        houseAdapter = HouseAdapter(emptyList(),onFavoriteClick)
-//        { house ->
-//
-//        }
+        houseAdapter = HouseAdapter(emptyList(), onFavoriteClick, favoriteIds)
         recyclerView.adapter = houseAdapter
 
         // Observe houses LiveData
@@ -92,5 +106,31 @@ class ListFragment : Fragment() {
         listViewModel.fetchHouses()
 
         return view
+    }
+
+    private fun fetchFavoriteIds() {
+        val currentUser = firebaseAuth.currentUser
+        if (currentUser != null) {
+            val userRef = FirebaseFirestore.getInstance().collection("tenants").document(currentUser.uid)
+            userRef.get().addOnSuccessListener { document ->
+                val favoriteHouseIds = document.get("favoriteHouseIds") as? List<String>
+                if (favoriteHouseIds != null) {
+                    favoriteIds.clear()
+                    favoriteIds.addAll(favoriteHouseIds)
+                    houseAdapter.updateFavoriteIds(favoriteIds)
+                }
+            }
+        }
+    }
+
+    private fun onLogout() {
+        // Clear favorite IDs
+        favoriteIds.clear()
+
+        // Notify the adapter about the change
+        houseAdapter.updateFavoriteIds(favoriteIds)
+
+        // Optionally show a message
+        Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
     }
 }

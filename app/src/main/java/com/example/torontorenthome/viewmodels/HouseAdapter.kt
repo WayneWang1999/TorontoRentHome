@@ -12,7 +12,8 @@ import com.example.torontorenthome.models.House
 
 class HouseAdapter(
     private var houses: List<House>,
-    private val onFavoriteClick: (House) -> Unit
+    private val onFavoriteClick: (House) -> Unit,
+    private var favoriteIds: Set<String>, // Pass favorite IDs
 ) : RecyclerView.Adapter<HouseAdapter.HouseViewHolder>() {
 
     class HouseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -45,6 +46,13 @@ class HouseAdapter(
             .into(holder.imageUrl)
         // Handle favorite click
         holder.favorite.setOnClickListener { onFavoriteClick(house) }
+
+        // Set the favorite icon based on whether the house is in favoriteIds
+        if (favoriteIds.contains(house.houseId)) {
+            holder.favorite.setImageResource(R.drawable.ic_action_favorite_red)
+        } else {
+           holder.favorite.setImageResource(R.drawable.ic_action_favorite)
+        }
     }
 
     override fun getItemCount(): Int = houses.size
@@ -52,6 +60,11 @@ class HouseAdapter(
     // Update data dynamically
     fun updateData(newHouses: List<House>) {
         houses = newHouses
+        notifyDataSetChanged()
+    }
+
+    fun updateFavoriteIds(newFavoriteIds: Set<String>) {
+        favoriteIds = newFavoriteIds
         notifyDataSetChanged()
     }
 }

@@ -10,6 +10,7 @@ import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.BottomSheetHouseInfoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+
 class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetHouseInfoBinding? = null
     private val binding get() = _binding!!

@@ -1,5 +1,3 @@
-package com.example.torontorenthome.viewmodels
-
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -16,6 +14,9 @@ class FavoriteFragmentViewModel(
     private val _favoriteHouses = MutableLiveData<List<House>>()
     val favoriteHouses: LiveData<List<House>> get() = _favoriteHouses
 
+    private val _favoriteIds = MutableLiveData<Set<String>>()
+    val favoriteIds: LiveData<Set<String>> get() = _favoriteIds
+
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
 
@@ -31,7 +32,7 @@ class FavoriteFragmentViewModel(
         }
     }
 
-    private fun fetchFavoriteHouses(userId: String) {
+    fun fetchFavoriteHouses(userId: String) {
         val userRef = firestore.collection("tenants").document(userId)
 
         userRef.get()
@@ -41,7 +42,9 @@ class FavoriteFragmentViewModel(
                     if (favoriteHouseIds.isNullOrEmpty()) {
                         _error.value = "No favorite houses found"
                         _favoriteHouses.value = emptyList()
+                        _favoriteIds.value = emptySet()
                     } else {
+                        _favoriteIds.value = favoriteHouseIds.toSet() // Update favorite IDs
                         fetchHousesByIds(favoriteHouseIds)
                     }
                 } else {

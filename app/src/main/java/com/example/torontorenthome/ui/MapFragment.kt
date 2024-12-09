@@ -6,15 +6,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.SearchView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.torontorenthome.MyApp
+import com.example.torontorenthome.R
 import com.example.torontorenthome.data.HouseRepository
 import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
+import com.example.torontorenthome.models.HouseFilter
 import com.example.torontorenthome.util.HouseOperations
 import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -23,6 +28,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.internal.ViewUtils.hideKeyboard
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -71,14 +77,62 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         // Setup interactions
         val houseOperations=HouseOperations()
         binding.tvAppName.setOnClickListener {
-            houseOperations.generateRandomHousesAndUpload()
+        //    houseOperations.generateRandomHousesAndUpload()
             Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
         }
 
         binding.imageFilter.setOnClickListener {
-            houseOperations.deleteAllHouses()
+         //   houseOperations.deleteAllHouses()
             Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
         }
+
+        // Set up the listener for search query text changes
+        binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                // Perform the search with the submitted query
+                query?.let {
+                    performSearch(it)
+                }
+                binding.svSearch.clearFocus() // Clear focus from SearchView
+              //  hideKeyboard(binding.svSearch) // Hide the keyboard
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                // Update search results dynamically as the user types
+                newText?.let {
+                    updateSearchResults(it)
+                }
+                return true
+            }
+        })
+    }
+
+    private fun performSearch(query: String) {
+        // Check if the query is not empty or null before performing a search
+        if (query.isNotEmpty()) {
+            val price = query.toDoubleOrNull()
+            if (price != null) {
+                // Filter houses with price greater than the entered value
+                val filteredHouses = mapViewModel.houses.value?.filter { it.price > price }
+                if (filteredHouses != null) {
+                    googleMap.clear() // Clear existing markers
+                    addMarkersToMap(filteredHouses) // Add filtered markers
+                    Toast.makeText(context, "Showing houses priced above $$price", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "No houses found above $$price", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Please enter a valid number", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+      }
+
+
+    private fun updateSearchResults(newText: String) {
+        Toast.makeText(context,"updateSerachResults",Toast.LENGTH_SHORT).show()
+        // Update the UI with filtered results based on the current text
     }
 
     override fun onMapReady(map: GoogleMap) {

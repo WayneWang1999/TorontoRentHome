@@ -83,24 +83,24 @@ class AccountFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = firebaseAuth.currentUser
-                    Toast.makeText(requireContext(), "Welcome, ${user?.email}", Toast.LENGTH_SHORT).show()
+                  //  Toast.makeText(requireContext(), "Welcome, ${user?.email}", Toast.LENGTH_SHORT).show()
                     updateUI()
                     val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(
                         R.id.bottomNavigationView)
                     bottomNavigationView.selectedItemId = R.id.miFavorite
                 } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Login failed: ${task.exception?.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+//                    Toast.makeText(
+//                        requireContext(),
+//                        "Login failed: ${task.exception?.message}",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
                 }
             }
     }
 
     private fun logoutUser() {
         firebaseAuth.signOut()
-        Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
+      //  Toast.makeText(requireContext(), "Logged out successfully", Toast.LENGTH_SHORT).show()
         updateUI()
     }
 
