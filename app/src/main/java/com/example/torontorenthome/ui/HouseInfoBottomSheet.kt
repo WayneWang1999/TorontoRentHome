@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.BottomSheetHouseInfoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -12,7 +14,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetHouseInfoBinding? = null
     private val binding get() = _binding!!
 
-    private var houseImage: Int = 0
+    private var imageUrl: String = ""
     private var description: String = ""
     private var type: String = ""
     private var createTime: String = ""
@@ -23,7 +25,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
 
     companion object {
         fun newInstance(
-            image: Int,
+            imageUrl: String,
             description: String,
             type: String,
             createTime: String,
@@ -34,7 +36,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         ): HouseInfoBottomSheet {
             val fragment = HouseInfoBottomSheet()
             val args = Bundle()
-            args.putInt("houseImage", image)
+            args.putString("imageUrl", imageUrl)
             args.putString("description", description)
             args.putString("type", type)
             args.putString("createTime", createTime)
@@ -50,7 +52,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            houseImage = it.getInt("houseImage", 0)
+            imageUrl = it.getString("imageUrl", "")
             description = it.getString("description", "")
             type = it.getString("type", "")
             createTime = it.getString("createTime", "")
@@ -73,7 +75,12 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Set data using View Binding
-        binding.ivHouseImage.setImageResource(houseImage)
+        // Use Glide to load the house image from a URL
+        Glide.with(binding.ivHouseImage.context)
+            .load(imageUrl) // houseImage should be a URL string
+        //    .placeholder(R.drawable.house01) // Optional: Add a placeholder image
+             .into(binding.ivHouseImage)
+       // binding.ivHouseImage.setImageResource(houseImage)
         binding.tvPrice.text = "Price: $${price.toInt()}"
         binding.tvBedrooms.text = "BED: $bedrooms . BATH: $bathrooms . $area Ft"
         binding.tvDescription.text = "$type   .   $createTime"

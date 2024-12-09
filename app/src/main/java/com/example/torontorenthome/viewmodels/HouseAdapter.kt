@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.torontorenthome.R
 import com.example.torontorenthome.models.House
 
@@ -15,7 +16,7 @@ class HouseAdapter(
 ) : RecyclerView.Adapter<HouseAdapter.HouseViewHolder>() {
 
     class HouseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val houseImage: ImageView = view.findViewById(R.id.ivHouseImage)
+        val imageUrl: ImageView = view.findViewById(R.id.ivHouseImage)
         val price: TextView = view.findViewById(R.id.tvPrice)
         val bedrooms: TextView = view.findViewById(R.id.tvBedrooms)
         val description: TextView = view.findViewById(R.id.tvDescription)
@@ -37,7 +38,12 @@ class HouseAdapter(
         holder.bedrooms.text = "BED: ${house.bedrooms} . BATH:${house.bathrooms} . ${house.area}  Ft"
         holder.description.text = "${house.type}   . ${house.createTime}"
         // Load image (placeholder logic here, use Glide or Coil for real images)
-        holder.houseImage.setImageResource(R.drawable.house01)
+        // Load image using a library like Glide or Coil
+        Glide.with(holder.itemView.context)
+            .load(house.imageUrl) // Load the picture from URL
+      //      .placeholder(R.drawable.house01) // Placeholder while loading
+            .into(holder.imageUrl)
+      //  holder.houseImage.setImageResource(R.drawable.house01)
         // Handle favorite click
         holder.favorite.setOnClickListener { onFavoriteClick(house) }
     }

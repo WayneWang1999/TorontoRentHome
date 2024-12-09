@@ -125,7 +125,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun showHouseInfoBottomSheet(house: House) {
         // Show house details in BottomSheet
         val bottomSheet = HouseInfoBottomSheet.newInstance(
-            house.image,
+            house.imageUrl,
             house.description,
             house.type,
             house.createTime,

@@ -2,7 +2,6 @@ package com.example.torontorenthome.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.torontorenthome.R
 import com.google.firebase.firestore.DocumentId
 @Entity(tableName = "houses")
 data class House @JvmOverloads constructor(
@@ -18,7 +17,7 @@ data class House @JvmOverloads constructor(
     val area: Int = 800,
     val price: Double = 0.0,
     val ownerId: String = "wwgtFtJ4LpeqsgECNtn6UTnHFUI3",
-    val image: Int = R.drawable.house01,
+    val imageUrl:String ="https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?q=80&w=2074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     val type: String = "House",
     val createTime: String = "2 weeks"
 )
