@@ -35,20 +35,20 @@ class HouseAdapter(
         // Bind data to the views
 
         holder.price.text = "Price: $${house.price.toInt()}"
-        holder.bedrooms.text = "BED: ${house.bedrooms} . BATH:${house.bathrooms} . ${house.area}  Ft"
+        holder.bedrooms.text =
+            "BED: ${house.bedrooms} . BATH:${house.bathrooms} . ${house.area}  Ft"
         holder.description.text = "${house.type}   . ${house.createTime}"
-        // Load image (placeholder logic here, use Glide or Coil for real images)
         // Load image using a library like Glide or Coil
         Glide.with(holder.itemView.context)
             .load(house.imageUrl) // Load the picture from URL
-      //      .placeholder(R.drawable.house01) // Placeholder while loading
+            .placeholder(R.drawable.house01) // Placeholder while loading
             .into(holder.imageUrl)
-      //  holder.houseImage.setImageResource(R.drawable.house01)
         // Handle favorite click
         holder.favorite.setOnClickListener { onFavoriteClick(house) }
     }
 
     override fun getItemCount(): Int = houses.size
+
     // Update data dynamically
     fun updateData(newHouses: List<House>) {
         houses = newHouses

@@ -78,7 +78,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         // Use Glide to load the house image from a URL
         Glide.with(binding.ivHouseImage.context)
             .load(imageUrl) // houseImage should be a URL string
-        //    .placeholder(R.drawable.house01) // Optional: Add a placeholder image
+            .placeholder(R.drawable.house01) // Optional: Add a placeholder image
              .into(binding.ivHouseImage)
        // binding.ivHouseImage.setImageResource(houseImage)
         binding.tvPrice.text = "Price: $${price.toInt()}"

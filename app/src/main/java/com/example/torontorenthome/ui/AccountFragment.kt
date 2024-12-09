@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.FragmentAccountBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
 class AccountFragment : Fragment() {
@@ -83,6 +85,9 @@ class AccountFragment : Fragment() {
                     val user = firebaseAuth.currentUser
                     Toast.makeText(requireContext(), "Welcome, ${user?.email}", Toast.LENGTH_SHORT).show()
                     updateUI()
+                    val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(
+                        R.id.bottomNavigationView)
+                    bottomNavigationView.selectedItemId = R.id.miFavorite
                 } else {
                     Toast.makeText(
                         requireContext(),

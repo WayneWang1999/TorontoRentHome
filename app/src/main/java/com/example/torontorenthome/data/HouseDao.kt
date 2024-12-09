@@ -19,7 +19,4 @@ interface HouseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHouse(house: House)
-
-//    @Query("DELETE FROM houses")
-//    suspend fun clearTable()
 }

@@ -1,6 +1,6 @@
 package com.example.torontorenthome.util
 
-import com.example.torontorenthome.R
+
 import com.example.torontorenthome.models.House
 import com.google.firebase.firestore.FirebaseFirestore
 

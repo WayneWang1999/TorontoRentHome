@@ -1,7 +1,6 @@
 package com.example.torontorenthome.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -32,7 +31,7 @@ class FavoriteFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.rvFavoriteHouse)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        houseAdapter = HouseAdapter(emptyList()) { house ->
+        houseAdapter = HouseAdapter(emptyList()) { _ ->
             // Handle favorite click
         }
         recyclerView.adapter = houseAdapter
@@ -49,7 +48,7 @@ class FavoriteFragment : Fragment() {
         // Trigger user check
         viewModel.checkUserAuthentication()
         // Trigger data fetch
-       // viewModel.fetchFavoriteHouses()
+        // viewModel.fetchFavoriteHouses()
 
         return view
     }
@@ -64,7 +63,6 @@ class FavoriteFragment : Fragment() {
         }
 
         viewModel.navigateToAccount.observe(viewLifecycleOwner) { shouldNavigate ->
-            Log.d("shouldNavigat","$shouldNavigate")
             if (shouldNavigate) {
                 navigateToAccountFragment()
             }
@@ -72,7 +70,8 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun navigateToAccountFragment() {
-        val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        val bottomNavigationView =
+            requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         bottomNavigationView.selectedItemId = R.id.miAccount
 
     }

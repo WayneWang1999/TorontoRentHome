@@ -17,12 +17,4 @@ class MyApp : Application() {
             "app_database"
         ).build()
     }
-
-//    companion object {
-//        private var instance: MyApp? = null
-//
-//        fun getInstance(): MyApp {
-//            return instance ?: throw IllegalStateException("Application is not initialized")
-//        }
-//    }
 }

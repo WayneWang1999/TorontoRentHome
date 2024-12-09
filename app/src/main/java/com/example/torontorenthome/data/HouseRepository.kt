@@ -11,7 +11,7 @@ class HouseRepository (private val houseDao: HouseDao){
 
     suspend fun fetchHouses(): List<House> {
         return try {
-            // Fetch from Firestore
+            // Fetch from FireStore
             val houses = db.collection("houses")
                 .get()
                 .await()

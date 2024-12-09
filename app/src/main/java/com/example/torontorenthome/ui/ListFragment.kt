@@ -56,7 +56,7 @@ class ListFragment : Fragment() {
                 val favoriteHouseId = house.houseId
 
                 // Add house ID to the current user's favorite list (this could be a list of house IDs)
-                // Assuming you have a Firebase Firestore collection for users, where the user data is stored
+                // Assuming you have a Firebase FireStore collection for users, where the user data is stored
                 val userRef = FirebaseFirestore.getInstance().collection("tenants").document(currentUser.uid)
                 userRef.update("favoriteHouseIds", FieldValue.arrayUnion(favoriteHouseId))
                 // Show a success message
