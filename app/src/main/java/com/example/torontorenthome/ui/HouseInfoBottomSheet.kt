@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.BottomSheetHouseInfoBinding
@@ -86,8 +85,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         binding.tvBedrooms.text = "BED: $bedrooms . BATH: $bathrooms . $area Ft"
         binding.tvDescription.text = "$type   .   $createTime"
         binding.imageFavorite.setOnClickListener {
-            // Add this house to the currentUser Profile (Mock action for now)
-            Toast.makeText(requireContext(), "Add the house to Favorite", Toast.LENGTH_LONG).show()
         }
     }
+
 }

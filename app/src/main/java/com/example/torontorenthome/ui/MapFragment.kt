@@ -1,25 +1,23 @@
 package com.example.torontorenthome.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
+import android.view.inputmethod.InputMethodManager
 import android.widget.SearchView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.torontorenthome.MyApp
-import com.example.torontorenthome.R
 import com.example.torontorenthome.data.HouseRepository
 import com.example.torontorenthome.data.MapViewModelFactory
 import com.example.torontorenthome.databinding.FragmentMapBinding
 import com.example.torontorenthome.models.House
-import com.example.torontorenthome.models.HouseFilter
 import com.example.torontorenthome.util.HouseOperations
 import com.example.torontorenthome.viewmodels.MapViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -28,7 +26,7 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.material.internal.ViewUtils.hideKeyboard
+
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -42,6 +40,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var googleMap: GoogleMap
     private lateinit var mapViewModel: MapViewModel
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -94,20 +94,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     performSearch(it)
                 }
                 binding.svSearch.clearFocus() // Clear focus from SearchView
-              //  hideKeyboard(binding.svSearch) // Hide the keyboard
+               hideKeyboard(binding.svSearch) // Hide the keyboard
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Update search results dynamically as the user types
                 newText?.let {
-                    updateSearchResults(it)
+                   // updateSearchResults(it)
                 }
                 return true
             }
         })
     }
-
+    fun hideKeyboard(view: View) {
+        val inputMethodManager = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
+    }
     private fun performSearch(query: String) {
         // Check if the query is not empty or null before performing a search
         if (query.isNotEmpty()) {
@@ -130,10 +133,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
       }
 
 
-    private fun updateSearchResults(newText: String) {
-        Toast.makeText(context,"updateSerachResults",Toast.LENGTH_SHORT).show()
-        // Update the UI with filtered results based on the current text
-    }
+//    private fun updateSearchResults(newText: String) {
+//        Toast.makeText(context,"updateSerachResults",Toast.LENGTH_SHORT).show()
+//        // Update the UI with filtered results based on the current text
+//    }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
@@ -177,7 +180,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
     private fun showHouseInfoBottomSheet(house: House) {
-        // Show house details in BottomSheet
+        // Check if the BottomSheet is already shown
+        val existingBottomSheet = parentFragmentManager.findFragmentByTag("HouseInfoBottomSheet")
+
+        if (existingBottomSheet != null) {
+            // Dismiss the existing BottomSheet if it's shown
+            (existingBottomSheet as? HouseInfoBottomSheet)?.dismiss()
+        }
+
+        // Show a new BottomSheet
         val bottomSheet = HouseInfoBottomSheet.newInstance(
             house.imageUrl,
             house.description,
