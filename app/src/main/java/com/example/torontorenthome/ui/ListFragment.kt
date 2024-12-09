@@ -16,6 +16,7 @@ import com.example.torontorenthome.data.ListViewModelFactory
 import com.example.torontorenthome.models.House
 import com.example.torontorenthome.viewmodels.HouseAdapter
 import com.example.torontorenthome.viewmodels.ListViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
@@ -27,7 +28,7 @@ class ListFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var houseAdapter: HouseAdapter
     private lateinit var listViewModel: ListViewModel
-    lateinit var auth: FirebaseAuth
+    private lateinit var firebaseAuth: FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,17 +47,10 @@ class ListFragment : Fragment() {
         listViewModel = ViewModelProvider(this, factory).get(ListViewModel::class.java)
 
         // -------- setup the auth variable
-        auth = Firebase.auth
+        firebaseAuth = Firebase.auth
         // Define the onFavoriteClick callback
         val onFavoriteClick: (House) -> Unit = { house ->
-            //Get the currentUser
-            // if(auth.currentUser!=null)
-            //currentUser.favoriteHouseId.add(house.id)
-            //else go to AccountFragment
-            //update the view
-            // Check if the user is logged in
-            val currentUser = auth.currentUser
-
+            val currentUser = firebaseAuth.currentUser
             if (currentUser !=null) {
                 // User is logged in, update the favorite list
                 val favoriteHouseId = house.houseId
@@ -65,27 +59,20 @@ class ListFragment : Fragment() {
                 // Assuming you have a Firebase Firestore collection for users, where the user data is stored
                 val userRef = FirebaseFirestore.getInstance().collection("tenants").document(currentUser.uid)
                 userRef.update("favoriteHouseIds", FieldValue.arrayUnion(favoriteHouseId))
-
                 // Show a success message
                 Toast.makeText(context, "House added to favorites!", Toast.LENGTH_SHORT).show()
-
                 // Update the view (in this case, you could refresh the adapter)
                 houseAdapter.notifyDataSetChanged()
             } else {
                 // If the user is not logged in, navigate to the AccountFragment
                 Toast.makeText(context, "You need to log in to add favorites", Toast.LENGTH_SHORT).show()
-                // Navigate to AccountFragment or show a login screen
-               // findNavController().navigate(R.id.action_listFragment_to_accountFragment)
+                val bottomNavigationView = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+                bottomNavigationView.selectedItemId = R.id.miAccount
             }
-
-
-            // Update the database or perform any necessary actions
-           // listViewModel.updateFavoriteStatus(house)
 
             // Refresh the list to reflect the change
             houseAdapter.notifyDataSetChanged()
         }
-
         // Set up RecyclerView with an empty adapter initially
         houseAdapter = HouseAdapter(emptyList(),onFavoriteClick)
 //        { house ->

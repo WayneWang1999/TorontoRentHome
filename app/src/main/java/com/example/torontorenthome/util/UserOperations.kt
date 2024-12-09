@@ -22,9 +22,8 @@ class UserOperations {
                 name="owner$i",
                 email="owner$i@gmail.com",
                 password="111111",
-                ownerHouseId="",
-                uId = "",
-                )
+                ownerHouseIds= listOf()
+               )
 
             // Add to the batch
             val ownerRef = ownersCollection.document()
@@ -51,8 +50,7 @@ class UserOperations {
                 name="tenant$i",
                 email="tenant$i@gmail.com",
                 password="111111",
-                favoriteHouseId = "",
-                uId = "",
+                favoriteHouseIds = listOf(),
             )
 
             // Add to the batch
