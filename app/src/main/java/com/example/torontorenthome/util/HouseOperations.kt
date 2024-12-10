@@ -37,7 +37,7 @@ class HouseOperations {
             val house = House(
                 latitude = latitude,
                 longitude = longitude,
-                address = "House $i, Street ${Random.nextInt(1, 100)}, City",
+                address = " $i House, ${Random.nextInt(1, 100)} Street , Toronto",
                 createTime = "${Random.nextInt(1, 100)} days",
                 description = "A beautiful house with modern amenities.",
                 bedrooms = Random.nextInt(1, 6),

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,7 +43,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapViewModel: MapViewModel
 
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -74,15 +74,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         // Fetch houses from ViewModel
         mapViewModel.fetchHouses()
 
-        // Setup interactions
-        val houseOperations=HouseOperations()
+        // Setup simulation data, use tvAppName to add data use imageFilter to delete data
+        val houseOperations = HouseOperations()
+
         binding.tvAppName.setOnClickListener {
-        //    houseOperations.generateRandomHousesAndUpload()
+            houseOperations.generateRandomHousesAndUpload()
             Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
         }
 
         binding.imageFilter.setOnClickListener {
-         //   houseOperations.deleteAllHouses()
+           //  houseOperations.deleteAllHouses()
             Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
         }
 
@@ -94,43 +95,53 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     performSearch(it)
                 }
                 binding.svSearch.clearFocus() // Clear focus from SearchView
-               hideKeyboard(binding.svSearch) // Hide the keyboard
+                hideKeyboard(binding.svSearch) // Hide the keyboard
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Update search results dynamically as the user types
                 newText?.let {
-                   // updateSearchResults(it)
+                    // updateSearchResults(it)
                 }
                 return true
             }
         })
     }
+
     fun hideKeyboard(view: View) {
-        val inputMethodManager = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMethodManager =
+            view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
+
     private fun performSearch(query: String) {
         // Check if the query is not empty or null before performing a search
         if (query.isNotEmpty()) {
             val price = query.toDoubleOrNull()
             if (price != null) {
                 // Filter houses with price greater than the entered value
+
                 val filteredHouses = mapViewModel.houses.value?.filter { it.price > price }
                 if (filteredHouses != null) {
                     googleMap.clear() // Clear existing markers
                     addMarkersToMap(filteredHouses) // Add filtered markers
-                    Toast.makeText(context, "Showing houses priced above $$price", Toast.LENGTH_SHORT).show()
+
+                    Toast.makeText(
+                        context,
+                        "Showing houses priced above $$price",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
-                    Toast.makeText(context, "No houses found above $$price", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "No houses found above $$price", Toast.LENGTH_SHORT)
+                        .show()
                 }
             } else {
                 Toast.makeText(context, "Please enter a valid number", Toast.LENGTH_SHORT).show()
             }
         }
 
-      }
+    }
 
 
 //    private fun updateSearchResults(newText: String) {
@@ -155,6 +166,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun addMarkersToMap(houses: List<House>) {
         houses.forEach { house ->
             val location = LatLng(house.latitude, house.longitude)
+
             googleMap.addMarker(
                 MarkerOptions()
                     .position(location)
@@ -175,10 +187,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapViewModel.houseDetails.observe(viewLifecycleOwner) { house ->
             house?.let {
                 showHouseInfoBottomSheet(house)
+                Log.d("ShowBottom","++++++++++++++++++++++++++")
+                Log.d("LiveDataUpdate", "houseDetails updated with: ${mapViewModel.houseDetails.value}")
                 // Show house details (e.g., BottomSheet or dialog)
             }
         }
     }
+
+
     private fun showHouseInfoBottomSheet(house: House) {
         // Check if the BottomSheet is already shown
         val existingBottomSheet = parentFragmentManager.findFragmentByTag("HouseInfoBottomSheet")
@@ -197,7 +213,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             house.bedrooms,
             house.price,
             house.bathrooms,
-            house.area
+            house.area,
+            house.address
         )
         bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
     }
@@ -237,7 +254,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             try {
                 googleMap.isMyLocationEnabled = true
             } catch (e: SecurityException) {
-                Toast.makeText(requireContext(), "Error enabling location: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Error enabling location: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         } else {
             requestLocationPermissions()
@@ -254,7 +275,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 enableUserLocation()
             } else {
-                Toast.makeText(requireContext(), "Location permission denied.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Location permission denied.", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }

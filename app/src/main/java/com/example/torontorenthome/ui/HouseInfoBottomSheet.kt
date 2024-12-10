@@ -22,6 +22,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
     private var price: Double = 0.0
     private var bathrooms: Int = 0
     private var area: Int = 0
+    private var address:String=""
 
     companion object {
         fun newInstance(
@@ -32,7 +33,8 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
             bedrooms: Int,
             price: Double,
             bathrooms: Int,
-            area: Int
+            area: Int,
+            address:String
         ): HouseInfoBottomSheet {
             val fragment = HouseInfoBottomSheet()
             val args = Bundle()
@@ -44,6 +46,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
             args.putInt("bathrooms", bathrooms)
             args.putInt("area", area)
             args.putDouble("price", price)
+            args.putString("address",address)
             fragment.arguments = args
             return fragment
         }
@@ -60,6 +63,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
             price = it.getDouble("price", 0.0)
             bathrooms = it.getInt("bathrooms", 0)
             area = it.getInt("area", 0)
+            address=it.getString("address","")
         }
     }
 
@@ -83,7 +87,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
        // binding.ivHouseImage.setImageResource(houseImage)
         binding.tvPrice.text = "Price: $${price.toInt()}"
         binding.tvBedrooms.text = "BED: $bedrooms . BATH: $bathrooms . $area Ft"
-        binding.tvDescription.text = "$type   .   $createTime"
+        binding.tvDescription.text = "$type   .   $createTime  . $address"
         binding.imageFavorite.setOnClickListener {
         }
     }

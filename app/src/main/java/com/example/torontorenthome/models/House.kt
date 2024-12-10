@@ -21,4 +21,12 @@ data class House @JvmOverloads constructor(
     val type: String = "House",
     val createTime: String = "2 weeks"
 )
+{
+    // Helper method to check if the house matches a query
+    fun House.matchesQuery(query: String): Boolean {
+        return description.contains(query, ignoreCase = true) ||
+                type.equals(query, ignoreCase = true) ||
+                price.toString().contains(query)
+    }
+}
 

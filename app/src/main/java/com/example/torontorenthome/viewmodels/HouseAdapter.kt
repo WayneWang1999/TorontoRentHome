@@ -38,7 +38,7 @@ class HouseAdapter(
         holder.price.text = "Price: $${house.price.toInt()}"
         holder.bedrooms.text =
             "BED: ${house.bedrooms} . BATH:${house.bathrooms} . ${house.area}  Ft"
-        holder.description.text = "${house.type}   . ${house.createTime}"
+        holder.description.text = "${house.type}   . ${house.createTime}  . ${house.address}"
         // Load image using a library like Glide or Coil
         Glide.with(holder.itemView.context)
             .load(house.imageUrl) // Load the picture from URL
