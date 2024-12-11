@@ -1,10 +1,12 @@
 package com.example.torontorenthome.ui
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.bumptech.glide.Glide
+import com.example.torontorenthome.MainActivity
 import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.BottomSheetHouseInfoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -91,5 +93,10 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         binding.imageFavorite.setOnClickListener {
         }
     }
+//    override fun onDismiss(dialog: DialogInterface) {
+//        super.onDismiss(dialog)
+//        // Notify that the BottomSheet is dismissed
+//        (activity as? MapFragment)?.onBottomSheetDismissed()
+//    }
 
 }

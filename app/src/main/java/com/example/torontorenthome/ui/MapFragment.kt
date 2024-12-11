@@ -28,7 +28,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
-
 class MapFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
@@ -42,7 +41,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
     private lateinit var mapViewModel: MapViewModel
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -53,204 +51,141 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupMapView(savedInstanceState)
+        initializeViewModel()
+        setupSearchView()
+        setupAppNameClickListener()
+        setupFilterClickListener()
+    }
 
-        // Initialize MapView
+    private fun setupMapView(savedInstanceState: Bundle?) {
         mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+    }
 
-        // Initialize Repository and ViewModel
-        val database = (requireContext().applicationContext as MyApp).database
-        val houseDao = database.houseDao()
-        val repository = HouseRepository(houseDao)
-        val factory = MapViewModelFactory(repository)
-        mapViewModel = ViewModelProvider(this, factory).get(MapViewModel::class.java)
+    private fun initializeViewModel() {
+        val repository = HouseRepository((requireContext().applicationContext as MyApp).database.houseDao())
+        mapViewModel = ViewModelProvider(this, MapViewModelFactory(repository)).get(MapViewModel::class.java)
 
-        // Observe houses LiveData
+        // Observe all houses (only triggered when fetching all houses)
         mapViewModel.houses.observe(viewLifecycleOwner) { houses ->
-            houses?.let { addMarkersToMap(it) }
+            houses?.let { addMarkersToMap(it) }        }
+
+        // Observe house details for specific queries
+        mapViewModel.houseDetails.observe(viewLifecycleOwner) { house ->
+            house?.let { showHouseInfoBottomSheet(it) }
         }
 
-        // Fetch houses from ViewModel
         mapViewModel.fetchHouses()
+    }
 
-        // Setup simulation data, use tvAppName to add data use imageFilter to delete data
-        val houseOperations = HouseOperations()
-
-        binding.tvAppName.setOnClickListener {
-            houseOperations.generateRandomHousesAndUpload()
-            Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.imageFilter.setOnClickListener {
-           //  houseOperations.deleteAllHouses()
-            Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
-        }
-
-        // Set up the listener for search query text changes
+    private fun setupSearchView() {
         binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // Perform the search with the submitted query
-                query?.let {
-                    performSearch(it)
-                }
-                binding.svSearch.clearFocus() // Clear focus from SearchView
-                hideKeyboard(binding.svSearch) // Hide the keyboard
+                query?.let { performSearch(it) }
+                binding.svSearch.clearFocus()
+                hideKeyboard(binding.svSearch)
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                // Update search results dynamically as the user types
-                newText?.let {
-                    // updateSearchResults(it)
-                }
+                // Optionally handle text change if needed
                 return true
             }
         })
     }
 
-    fun hideKeyboard(view: View) {
-        val inputMethodManager =
-            view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
+    private fun setupAppNameClickListener() {
+        binding.tvAppName.setOnClickListener {
+            HouseOperations().generateRandomHousesAndUpload()
+            Toast.makeText(requireContext(), "App Name Clicked!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupFilterClickListener() {
+        binding.imageFilter.setOnClickListener {
+            // HouseOperations().deleteAllHouses() // Uncomment when needed
+            Toast.makeText(requireContext(), "Filter Clicked!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun performSearch(query: String) {
-        // Check if the query is not empty or null before performing a search
+        Log.d("Search", "performSearch called with query: $query")
         if (query.isNotEmpty()) {
             val price = query.toDoubleOrNull()
             if (price != null) {
-                // Filter houses with price greater than the entered value
-
                 val filteredHouses = mapViewModel.houses.value?.filter { it.price > price }
-                if (filteredHouses != null) {
-                    googleMap.clear() // Clear existing markers
-                    addMarkersToMap(filteredHouses) // Add filtered markers
-
-                    Toast.makeText(
-                        context,
-                        "Showing houses priced above $$price",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(context, "No houses found above $$price", Toast.LENGTH_SHORT)
-                        .show()
-                }
+                filteredHouses?.let {
+                    googleMap.clear()
+                    addMarkersToMap(it)
+                    Toast.makeText(context, "Showing houses priced above $$price", Toast.LENGTH_SHORT).show()
+                } ?: Toast.makeText(context, "No houses found above $$price", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(context, "Please enter a valid number", Toast.LENGTH_SHORT).show()
             }
         }
-
-    }
-
-
-//    private fun updateSearchResults(newText: String) {
-//        Toast.makeText(context,"updateSerachResults",Toast.LENGTH_SHORT).show()
-//        // Update the UI with filtered results based on the current text
-//    }
-
-    override fun onMapReady(map: GoogleMap) {
-        googleMap = map
-
-        if (areLocationPermissionsGranted()) {
-            enableUserLocation()
-        } else {
-            requestLocationPermissions()
-        }
-
-        val defaultLocation = LatLng(43.677308, -79.406927) // Default location (e.g., GeorgeBrown)
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f))
-        googleMap.uiSettings.isZoomControlsEnabled = true
     }
 
     private fun addMarkersToMap(houses: List<House>) {
+        Log.d("Search", "addMarkersToMap is called")
         houses.forEach { house ->
             val location = LatLng(house.latitude, house.longitude)
-
             googleMap.addMarker(
                 MarkerOptions()
                     .position(location)
                     .title(house.description)
             )?.tag = house.houseId
         }
-
         setupMarkerClickListener()
     }
 
-    private fun setupMarkerClickListener() {
-        googleMap.setOnMarkerClickListener { marker ->
-            val houseId = marker.tag as? String
-            houseId?.let { mapViewModel.fetchHouseDetails(it) }
-            true
-        }
-
-        mapViewModel.houseDetails.observe(viewLifecycleOwner) { house ->
-            house?.let {
-                showHouseInfoBottomSheet(house)
-                Log.d("ShowBottom","++++++++++++++++++++++++++")
-                Log.d("LiveDataUpdate", "houseDetails updated with: ${mapViewModel.houseDetails.value}")
-                // Show house details (e.g., BottomSheet or dialog)
+private fun setupMarkerClickListener() {
+    googleMap.setOnMarkerClickListener { marker ->
+        val houseId = marker.tag as? String
+        houseId?.let { id ->
+            // Avoid redundant fetch or re-observation
+            if (mapViewModel.houseDetails.value?.houseId != id) {
+                mapViewModel.fetchHouseDetails(id)
             }
         }
+        true
     }
-
+}
 
     private fun showHouseInfoBottomSheet(house: House) {
-        // Check if the BottomSheet is already shown
+        Log.d("Search", "showHouseInfoBottomSheet is called")
         val existingBottomSheet = parentFragmentManager.findFragmentByTag("HouseInfoBottomSheet")
-
         if (existingBottomSheet != null) {
-            // Dismiss the existing BottomSheet if it's shown
             (existingBottomSheet as? HouseInfoBottomSheet)?.dismiss()
         }
 
-        // Show a new BottomSheet
         val bottomSheet = HouseInfoBottomSheet.newInstance(
-            house.imageUrl,
-            house.description,
-            house.type,
-            house.createTime,
-            house.bedrooms,
-            house.price,
-            house.bathrooms,
-            house.area,
-            house.address
+            house.imageUrl, house.description, house.type, house.createTime,
+            house.bedrooms, house.price, house.bathrooms, house.area, house.address
         )
         bottomSheet.show(parentFragmentManager, "HouseInfoBottomSheet")
     }
 
-
-    // Permission helpers
-    private fun isFineLocationPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun isCoarseLocationPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+    private fun hideKeyboard(view: View) {
+        val inputMethodManager = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     private fun areLocationPermissionsGranted(): Boolean {
-        return isFineLocationPermissionGranted() && isCoarseLocationPermissionGranted()
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestLocationPermissions() {
         requestPermissions(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
             LOCATION_PERMISSION_REQUEST_CODE
         )
     }
 
     private fun enableUserLocation() {
-        if (isFineLocationPermissionGranted()) {
+        if (areLocationPermissionsGranted()) {
             try {
                 googleMap.isMyLocationEnabled = true
             } catch (e: SecurityException) {
@@ -265,23 +200,26 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        if (areLocationPermissionsGranted()) {
+            enableUserLocation()
+        }
+
+        val defaultLocation = LatLng(43.677308, -79.406927)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f))
+        googleMap.uiSettings.isZoomControlsEnabled = true
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                enableUserLocation()
-            } else {
-                Toast.makeText(requireContext(), "Location permission denied.", Toast.LENGTH_SHORT)
-                    .show()
-            }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+            enableUserLocation()
+        } else {
+            Toast.makeText(requireContext(), "Location permission denied.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Lifecycle methods for MapView
     override fun onResume() {
         super.onResume()
         mapView.onResume()
