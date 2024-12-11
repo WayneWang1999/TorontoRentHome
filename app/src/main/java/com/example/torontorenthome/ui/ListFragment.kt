@@ -130,7 +130,17 @@ class ListFragment : Fragment() {
         // Notify the adapter about the change
         houseAdapter.updateFavoriteIds(favoriteIds)
 
-        // Optionally show a message
-        Toast.makeText(context, "Logged out successfully!", Toast.LENGTH_SHORT).show()
+
+        val context = context // context is nullable
+        if (context != null) {
+            Toast.makeText(context, "User is logout now!!!", Toast.LENGTH_SHORT).show()
+        } else {
+            // Log or handle the case where context is null
+        }
+    // Optionally show a message  This make the app crush  ******************
+     //   firebaseAuth.addAuthStateListener   this listener when the AccountFragment do the logout
+        // it action and call this function. now this fragment dis attached to the activity . the context
+        //will be null, it will make the system crush.***********************
+       //Toast.makeText(requireContext(), "Logged out successfully!", Toast.LENGTH_SHORT).show()
     }
 }

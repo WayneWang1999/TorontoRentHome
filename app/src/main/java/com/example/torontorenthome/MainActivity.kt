@@ -39,11 +39,19 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
-    // Helper function to set the current fragment
-    private fun setCurrentFragment(fragment: Fragment) =
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.flMainFrame, fragment)
-            commit()
+    private fun setCurrentFragment(fragment: Fragment) {
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.flMainFrame)
+        if (currentFragment != fragment) {
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.flMainFrame, fragment)
+                commit()
+            }
         }
+    }
+    // Helper function to set the current fragment
+//    private fun setCurrentFragment(fragment: Fragment) =
+//        supportFragmentManager.beginTransaction().apply {
+//            replace(R.id.flMainFrame, fragment)
+//            commit()
+//        }
 }

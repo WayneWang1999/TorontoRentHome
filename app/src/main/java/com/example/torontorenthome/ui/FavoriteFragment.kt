@@ -1,6 +1,5 @@
 package com.example.torontorenthome.ui
 
-import FavoriteFragmentViewModel
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -13,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.torontorenthome.R
 import com.example.torontorenthome.data.FavoriteViewModelFactory
 import com.example.torontorenthome.models.House
+import com.example.torontorenthome.viewmodels.FavoriteFragmentViewModel
 import com.example.torontorenthome.viewmodels.HouseAdapter
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -82,9 +82,14 @@ class FavoriteFragment : Fragment() {
 
         viewModel.navigateToAccount.observe(viewLifecycleOwner) { shouldNavigate ->
             if (shouldNavigate) {
-                navigateToAccountFragment()
+                Toast.makeText(context, "Please login and see your favorite House", Toast.LENGTH_LONG).show()
+                //****This auto navigate  have a issue and change to toast manual back to account fragment
+                //in the future solve this problem********
+               // navigateToAccountFragment()
+
             }
         }
+
     }
 
     private fun handleFavoriteClick(house: House) {
@@ -124,7 +129,6 @@ class FavoriteFragment : Fragment() {
             navigateToAccountFragment()
         }
     }
-
 
     private fun navigateToAccountFragment() {
         val bottomNavigationView =

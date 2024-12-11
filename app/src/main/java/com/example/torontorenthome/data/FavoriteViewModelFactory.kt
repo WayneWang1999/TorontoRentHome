@@ -1,8 +1,9 @@
 package com.example.torontorenthome.data
 
-import FavoriteFragmentViewModel
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.torontorenthome.viewmodels.FavoriteFragmentViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 

@@ -1,12 +1,12 @@
 package com.example.torontorenthome.ui
 
-import android.content.DialogInterface
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.bumptech.glide.Glide
-import com.example.torontorenthome.MainActivity
 import com.example.torontorenthome.R
 import com.example.torontorenthome.databinding.BottomSheetHouseInfoBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -91,12 +91,7 @@ class HouseInfoBottomSheet : BottomSheetDialogFragment() {
         binding.tvBedrooms.text = "BED: $bedrooms . BATH: $bathrooms . $area Ft"
         binding.tvDescription.text = "$type   .   $createTime  . $address"
         binding.imageFavorite.setOnClickListener {
+            Toast.makeText(context,"Add to favorite house",Toast.LENGTH_SHORT).show()
         }
     }
-//    override fun onDismiss(dialog: DialogInterface) {
-//        super.onDismiss(dialog)
-//        // Notify that the BottomSheet is dismissed
-//        (activity as? MapFragment)?.onBottomSheetDismissed()
-//    }
-
 }

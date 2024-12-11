@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -111,7 +110,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun performSearch(query: String) {
-        Log.d("Search", "performSearch called with query: $query")
+
         if (query.isNotEmpty()) {
             val price = query.toDoubleOrNull()
             if (price != null) {
@@ -128,7 +127,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun addMarkersToMap(houses: List<House>) {
-        Log.d("Search", "addMarkersToMap is called")
+
         houses.forEach { house ->
             val location = LatLng(house.latitude, house.longitude)
             googleMap.addMarker(
@@ -154,7 +153,7 @@ private fun setupMarkerClickListener() {
 }
 
     private fun showHouseInfoBottomSheet(house: House) {
-        Log.d("Search", "showHouseInfoBottomSheet is called")
+
         val existingBottomSheet = parentFragmentManager.findFragmentByTag("HouseInfoBottomSheet")
         if (existingBottomSheet != null) {
             (existingBottomSheet as? HouseInfoBottomSheet)?.dismiss()
